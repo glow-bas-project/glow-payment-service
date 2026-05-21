@@ -1,35 +1,42 @@
 package com.glow.payment.domain.shared;
 
-/**
- * Utility class for domain precondition validation.
- * Throws DomainException if preconditions are violated.
- */
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Set;
+
 public class DomainPrecondition {
-    
-    /**
-     * Assert that a condition is true, otherwise throw DomainException.
-     */
-    public static void assertTrue(boolean condition, String message) {
-        if (!condition) {
-            throw new DomainException(message);
+
+    public static <T> T requireNonNull(T value, String errorMessage) {
+        if (value == null) {
+            throw new DomainException(errorMessage);
         }
+
+        return value;
     }
-    
-    /**
-     * Assert that an object is not null, otherwise throw DomainException.
-     */
-    public static void notNull(Object object, String message) {
-        if (object == null) {
-            throw new DomainException(message);
+
+    public static String requireNonBlank(String value, String errorMessage) {
+        if (StringUtils.isEmpty(value)) {
+            throw new DomainException(errorMessage);
         }
+
+        return value;
     }
-    
-    /**
-     * Assert that a string is not empty, otherwise throw DomainException.
-     */
-    public static void notEmpty(String value, String message) {
-        if (value == null || value.isBlank()) {
-            throw new DomainException(message);
+
+    public static <T> List<T> requireNonEmpty(List<T> values, String errorMessage) {
+        if (CollectionUtils.isEmpty(values)) {
+            throw new DomainException(errorMessage);
         }
+
+        return values;
+    }
+
+    public static <T> Set<T> requireNonEmpty(Set<T> values, String errorMessage) {
+        if (CollectionUtils.isEmpty(values)) {
+            throw new DomainException(errorMessage);
+        }
+
+        return values;
     }
 }
