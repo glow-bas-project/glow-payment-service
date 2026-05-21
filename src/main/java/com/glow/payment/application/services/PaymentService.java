@@ -49,10 +49,12 @@ public class PaymentService {
                 request.orderId, request.customerId, request.amount);
 
         // Validate request
-        DomainPrecondition.notNull(request.orderId, "orderId is required");
-        DomainPrecondition.notNull(request.customerId, "customerId is required");
-        DomainPrecondition.notNull(request.amount, "amount is required");
-        DomainPrecondition.assertTrue(request.amount > 0, "amount must be greater than 0");
+        DomainPrecondition.requireNonNull(request.orderId, "orderId is required");
+        DomainPrecondition.requireNonNull(request.customerId, "customerId is required");
+        DomainPrecondition.requireNonNull(request.amount, "amount is required");
+        if (request.amount <= 0) {
+            throw new DomainException("amount must be greater than 0");
+        }
 
         // TODO: Validate that customerId matches authenticated userId for authorization
         // This will be implemented when integrating with OrderService validation
@@ -134,9 +136,11 @@ public class PaymentService {
         }
 
         // Validate request
-        DomainPrecondition.notNull(request.amount, "amount is required");
-        DomainPrecondition.assertTrue(request.amount > 0, "amount must be greater than 0");
-        DomainPrecondition.notEmpty(request.recipientAccountId, "recipientAccountId is required");
+        DomainPrecondition.requireNonNull(request.amount, "amount is required");
+        if (request.amount <= 0) {
+            throw new DomainException("amount must be greater than 0");
+        }
+        DomainPrecondition.requireNonBlank(request.recipientAccountId, "recipientAccountId is required");
 
         Payment payment = optionalPayment.get();
 
