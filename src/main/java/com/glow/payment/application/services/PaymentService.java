@@ -7,6 +7,7 @@ import com.glow.payment.application.model.PaymentDto;
 import com.glow.payment.application.model.TransferDto;
 import com.glow.payment.domain.model.Payment;
 import com.glow.payment.domain.model.Transfer;
+import com.glow.payment.domain.ports.StripePort;
 import com.glow.payment.domain.repository.PaymentRepository;
 import com.glow.payment.domain.repository.TransferRepository;
 import com.glow.payment.domain.shared.DomainException;
@@ -32,13 +33,16 @@ public class PaymentService {
     private final TransferRepository transferRepository;
     private final PaymentDtoMapper paymentDtoMapper;
     private final TransferDtoMapper transferDtoMapper;
+    private final StripePort stripePort;
 
     public PaymentService(PaymentRepository paymentRepository, TransferRepository transferRepository,
-                          PaymentDtoMapper paymentDtoMapper, TransferDtoMapper transferDtoMapper) {
+                      PaymentDtoMapper paymentDtoMapper, TransferDtoMapper transferDtoMapper,
+                      StripePort stripePort) {
         this.paymentRepository = paymentRepository;
         this.transferRepository = transferRepository;
         this.paymentDtoMapper = paymentDtoMapper;
         this.transferDtoMapper = transferDtoMapper;
+        this.stripePort = stripePort;
     }
 
     /**
@@ -59,12 +63,13 @@ public class PaymentService {
         // TODO: Validate that customerId matches authenticated userId for authorization
         // This will be implemented when integrating with OrderService validation
 
-        // TODO: Call Stripe API to create PaymentIntent
-        // For now, generate a mock Stripe intent ID
-        String stripePaymentIntentId = "pi_" + UUID.randomUUID().toString().substring(0, 24);
+        StripePort.StripePaymentIntentResult stripePaymentIntentId = stripePort.createPaymentIntent(
+            request.amount, request.orderId, request.customerId);
 
         // Create Payment entity
-        Payment payment = new Payment(stripePaymentIntentId, request.amount, request.customerId, request.orderId);
+        var result = stripePaymentIntentId;
+        Payment payment = new Payment(result.paymentIntentId(), request.amount, request.customerId, request.orderId);
+        payment.setStripeClientSecret(result.clientSecret());
         paymentRepository.save(payment);
 
         LOG.infof("Payment intent created: %s", payment.getId());
@@ -144,8 +149,8 @@ public class PaymentService {
 
         Payment payment = optionalPayment.get();
 
-        // TODO: Call Stripe API to create Transfer
-        String stripeTransferId = "tr_" + UUID.randomUUID().toString().substring(0, 24);
+        String stripeTransferId = stripePort.createTransfer(
+        request.amount, request.recipientAccountId, payment.getStripePaymentIntentId());
 
         // Create Transfer entity
         Transfer transfer = new Transfer(stripeTransferId, request.amount, request.recipientType, request.recipientAccountId);

@@ -9,6 +9,7 @@ import java.util.UUID;
 public class PaymentDto {
     public UUID id;
     public String stripePaymentIntentId;
+    public String stripeClientSecret;
     public Integer amount;
     public UUID customerId;
     public UUID orderId;
