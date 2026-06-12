@@ -5,7 +5,8 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Transfer;
-import com.stripe.net.ApiResource;
+import com.stripe.net.RequestOptions;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -19,17 +20,21 @@ public class StripeAdapter implements StripePort {
 
     private static final Logger LOG = Logger.getLogger(StripeAdapter.class);
 
-    public StripeAdapter(
-            @ConfigProperty(name = "glow.payment.stripe.secret-key") String secretKey,
-            @ConfigProperty(name = "glow.payment.stripe.base-url") String baseUrl) {
+    @ConfigProperty(name = "glow.payment.stripe.secret-key")
+    String secretKey;
+
+    @ConfigProperty(name = "glow.payment.stripe.base-url")
+    String baseUrl;
+
+    @PostConstruct
+    void init() {
         Stripe.apiKey = secretKey;
-        ApiResource.setGlobalResponseGetter(null); // reset any cached getter
         Stripe.overrideApiBase(baseUrl);
         LOG.infof("Stripe adapter initialised – base URL: %s", baseUrl);
     }
 
     @Override
-    public StripePort.StripePaymentIntentResult createPaymentIntent(Integer amount, UUID orderId, UUID customerId) {
+    public StripePaymentIntentResult createPaymentIntent(Integer amount, UUID orderId, UUID customerId) {
         try {
             Map<String, Object> params = new HashMap<>();
             params.put("amount", amount);
@@ -40,7 +45,7 @@ public class StripeAdapter implements StripePort {
 
             PaymentIntent intent = PaymentIntent.create(params);
             LOG.infof("Stripe PaymentIntent created: %s", intent.getId());
-            return new StripePort.StripePaymentIntentResult(intent.getId(), intent.getClientSecret());
+            return new StripePaymentIntentResult(intent.getId(), intent.getClientSecret());
         } catch (StripeException e) {
             throw new com.glow.payment.domain.shared.DomainException(
                     "Failed to create Stripe PaymentIntent: " + e.getMessage());
