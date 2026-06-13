@@ -15,6 +15,7 @@ public class Payment {
     private Instant createdAt;
     private Instant updatedAt;
     private String stripePaymentIntentId;
+    private String stripeClientSecret;
     private Integer amount;
     private UUID customerId;
     private UUID orderId;
@@ -69,7 +70,15 @@ public class Payment {
     public void setStripePaymentIntentId(String stripePaymentIntentId) {
         this.stripePaymentIntentId = stripePaymentIntentId;
     }
+
+    public String getStripeClientSecret() { 
+        return stripeClientSecret; 
+    }
     
+    public void setStripeClientSecret(String stripeClientSecret) {
+        this.stripeClientSecret = stripeClientSecret;
+    }
+
     public Integer getAmount() {
         return amount;
     }

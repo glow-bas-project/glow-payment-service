@@ -18,6 +18,7 @@ public class PaymentDtoMapper {
         PaymentDto dto = new PaymentDto();
         dto.id = payment.getId();
         dto.stripePaymentIntentId = payment.getStripePaymentIntentId();
+        dto.stripeClientSecret = payment.getStripeClientSecret();
         dto.amount = payment.getAmount();
         dto.customerId = payment.getCustomerId();
         dto.orderId = payment.getOrderId();

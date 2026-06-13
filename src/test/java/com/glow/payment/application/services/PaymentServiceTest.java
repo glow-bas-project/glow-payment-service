@@ -10,6 +10,7 @@ import com.glow.payment.application.model.TransferDto;
 import com.glow.payment.domain.model.Payment;
 import com.glow.payment.domain.model.PaymentStatus;
 import com.glow.payment.domain.model.Transfer;
+import com.glow.payment.domain.ports.StripePort;
 import com.glow.payment.domain.repository.PaymentRepository;
 import com.glow.payment.domain.repository.TransferRepository;
 import com.glow.payment.domain.shared.DomainException;
@@ -44,6 +45,9 @@ public class PaymentServiceTest {
     @Mock
     TransferDtoMapper transferDtoMapper;
 
+    @Mock
+    StripePort stripePort;
+
     @InjectMocks
     PaymentService service;
 
@@ -63,12 +67,18 @@ public class PaymentServiceTest {
             var dto = new PaymentDto();
             dto.id = p.getId();
             dto.stripePaymentIntentId = p.getStripePaymentIntentId();
+            dto.stripeClientSecret = p.getStripeClientSecret();
             dto.amount = p.getAmount();
             dto.customerId = p.getCustomerId();
             dto.orderId = p.getOrderId();
             dto.status = p.getStatus().toString();
             return dto;
         });
+
+        when(stripePort.createPaymentIntent(any(), any(), any()))
+            .thenReturn(new StripePort.StripePaymentIntentResult(
+                "pi_test_abc123",
+                "pi_test_abc123_secret_xyz"));
 
         // when
         var dto = service.createPaymentIntent(request, userId);
